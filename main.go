@@ -1,11 +1,13 @@
 package main
 
 import (
+	"errors"
 	models "gin-gorm/Models"
 	"gin-gorm/database"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 var router = gin.Default()
@@ -43,17 +45,19 @@ func getBookById() {
 		db := database.GetDB()
 		book := models.Book{}
 		id := c.Param("id")
-		err := db.First(&book, id).Error
+		result := db.First(&book, id)
 
-		if err != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusOK, gin.H{
-				"message": err,
+				"message": "Data Not Found",
+			})
+		} else {
+			c.JSON(http.StatusOK, gin.H{
+				"message": "data collected succesfuly",
+				"datas":   book,
 			})
 		}
-		c.JSON(http.StatusOK, gin.H{
-			"message": "data collected succesfuly",
-			"datas":   book,
-		})
+
 	})
 }
 
